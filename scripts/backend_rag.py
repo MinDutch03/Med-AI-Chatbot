@@ -214,18 +214,26 @@ def chat(request: ChatRequest):
     try:
         llm_response = requests.post(
             GROQ_URL,
-            headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
             json={
                 "model": GROQ_MODEL,
-                "prompt": prompt,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a helpful, respectful and honest medical assistant. Answer the user's question based ONLY on the provided context."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
                 "stream": False,
-                "options": {
-                    "temperature": 0.1,
-                    "num_predict": 256
-                }
+                "temperature": 0.1,
+                "max_tokens": 256
             }
         )
-        llm_answer = llm_response.json()["choices"][0]["message"]["content"]
+        llm_response.raise_for_status()
+        llm_answer = llm_response.json()["choices"][0]["message"]["content"].strip()
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=503, detail=f"LLM server is unavailable: {e}")
 
