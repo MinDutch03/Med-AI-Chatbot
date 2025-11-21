@@ -1,5 +1,9 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.1.0+cpu
+torchvision==0.16.0+cpu
+torchaudio==2.1.0+cpu
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
 sentence-transformers
 qdrant-client
