@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["python311", "pip"]
+
+[phases.install]
+cmds = [
+  "pip install --no-cache-dir --upgrade pip",
+  "pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu",
+  "pip install --no-cache-dir sentence-transformers --no-deps",
+  "pip install --no-cache-dir transformers huggingface-hub",
+  "pip install --no-cache-dir -r requirements.txt"
+]
+
+[phases.build]
+cmds = []
+
+[start]
+cmd = "uvicorn scripts.backend_rag:app --host 0.0.0.0 --port $PORT"
