@@ -57,3 +57,14 @@ README.md
 *.zip
 *.tar
 *.tar.gz
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Scripts not needed in production
+scripts/download_medquad.py
+scripts/fetch_pubmed.py
+scripts/process_medquad.py
+scripts/index_to_qdrant.py
