@@ -1,0 +1,29 @@
+# Environment Variables
+.env
+frontend/.env
+
+
+# Python
+__pycache__/
+
+
+# Virtual Environments
+medAI/
+
+
+# Node.js (frontend)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+
+# IDEs and Editors
+.vscode/
+
+# OS Files
+.DS_Store
+
+# Data Files (Large files - don't commit)
+data/medquad/processed/*.json
+data/pubmed/processed/*.json
+
