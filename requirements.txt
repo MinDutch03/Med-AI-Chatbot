@@ -6,3 +6,4 @@ qdrant-client
 requests
 tqdm
 numpy
+python-dotenv
