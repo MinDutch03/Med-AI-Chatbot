@@ -1,0 +1,59 @@
+# Virtual Environments
+medAI/
+venv/
+env/
+.venv/
+
+# Data Files (Large)
+data/
+MedQuAD-master/
+qdrant_storage/
+qdrant_data/
+
+# Models (Large)
+models/
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# Frontend (not needed for backend)
+frontend/
+node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+README.md
+
+# Other large files
+*.zip
+*.tar
+*.tar.gz
