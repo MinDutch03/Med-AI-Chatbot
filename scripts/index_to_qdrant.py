@@ -92,7 +92,7 @@ if COLLECTION_NAME not in [c.name for c in client.get_collections().collections]
     )
 
 # Batch upload
-BATCH_SIZE = 64
+BATCH_SIZE = 16
 for i in tqdm(range(0, len(documents), BATCH_SIZE), desc="Indexing to Qdrant"):
     batch = documents[i:i+BATCH_SIZE]
     texts = [doc["text"] for doc in batch]

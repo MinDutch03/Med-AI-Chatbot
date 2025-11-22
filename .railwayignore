@@ -4,29 +4,13 @@ venv/
 env/
 .venv/
 
-# Data Files (Large)
-data/
-MedQuAD-master/
-qdrant_storage/
-qdrant_data/
-
-# Models (Large)
-models/
-*.bin
-*.safetensors
-*.pt
-*.pth
-
 # Frontend (not needed for backend)
 frontend/
 node_modules/
 
 # Python cache
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+
 
 # IDE
 .vscode/
@@ -62,9 +46,3 @@ README.md
 tests/
 test_*.py
 *_test.py
-
-# Scripts not needed in production
-scripts/download_medquad.py
-scripts/fetch_pubmed.py
-scripts/process_medquad.py
-scripts/index_to_qdrant.py
