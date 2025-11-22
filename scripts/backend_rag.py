@@ -16,6 +16,7 @@ load_dotenv()
 # Config
 QDRANT_HOST = os.getenv("QDRANT_HOST")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT"))
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 EMBED_MODEL = os.getenv("EMBED_MODEL")
 TOP_K = int(os.getenv("TOP_K"))
@@ -50,7 +51,15 @@ app.add_middleware(
 print("Loading embedding model...")
 model = SentenceTransformer(EMBED_MODEL)
 print("Connecting to Qdrant...")
-client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+if QDRANT_HOST and (QDRANT_HOST.startswith("http://") or QDRANT_HOST.startswith("https://")):
+    # Qdrant Cloud - use URL parameter
+    if QDRANT_API_KEY:
+        client = QdrantClient(url=QDRANT_HOST, api_key=QDRANT_API_KEY)
+    else:
+        client = QdrantClient(url=QDRANT_HOST)
+else:
+    # Local Qdrant - use host and port
+    client = QdrantClient(host="localhost", port=QDRANT_PORT)
 print("Startup complete.")
 
 class ChatRequest(BaseModel):
