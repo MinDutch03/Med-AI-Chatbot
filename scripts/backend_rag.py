@@ -36,12 +36,17 @@ MMR_FETCH_MULTIPLIER = int(os.getenv("MMR_FETCH_MULTIPLIER"))  # Fetch 3x more c
 app = FastAPI(title="Medical RAG Backend")
 
 # CORS Middleware
-origins_str = os.getenv("CORS_ORIGINS")
-origins = [origin.strip() for origin in origins_str.split(",")] if origins_str else [] # Default Vite dev server port
+origins_str = os.getenv("CORS_ORIGINS", "")
+if origins_str:
+    # Split, strip whitespace, and remove trailing slashes
+    origins = [origin.strip().rstrip('/') for origin in origins_str.split(",") if origin.strip()]
+else:
+    origins = [] # Default Vite dev server port
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Allow all Vercel domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
