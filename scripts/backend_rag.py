@@ -22,9 +22,10 @@ EMBED_MODEL = os.getenv("EMBED_MODEL")
 TOP_K = int(os.getenv("TOP_K"))
 LLM_SERVER_URL = os.getenv("OLLAMA_URL")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_URL = os.getenv("GROQ_URL")
-GROQ_MODEL = os.getenv("GROQ_MODEL")
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+HUGGINGFACE_MODEL = os.getenv("HUGGINGFACE_MODEL")  # Default Mistral model
+HF_URL = os.getenv("HF_URL")
+
 
 # MMR Configuration
 MMR_LAMBDA = float(os.getenv("MMR_LAMBDA"))  # Balance between relevance (0.7) and diversity (0.3)
@@ -227,27 +228,24 @@ def chat(request: ChatRequest):
     # 7. Send prompt to the local LLM
     try:
         llm_response = requests.post(
-            GROQ_URL,
-            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+            HF_URL,
+            headers={"Authorization": f"Bearer {HUGGINGFACE_API_KEY}", "Content-Type": "application/json"},
             json={
-                "model": GROQ_MODEL,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a helpful, respectful and honest medical assistant. Answer the user's question based ONLY on the provided context."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                "stream": False,
-                "temperature": 0.1,
-                "max_tokens": 256
-            }
+                "inputs": prompt,
+                "parameters": {
+                    "temperature": 0.1,
+                    "max_new_tokens": 256,
+                    "return_full_text": False
+                }
+            },
+            timeout=30
         )
         llm_response.raise_for_status()
-        llm_answer = llm_response.json()["choices"][0]["message"]["content"].strip()
+        response_data = llm_response.json()
+        if isinstance(response_data, list) and len(response_data) > 0:
+            llm_answer = response_data[0].get("generated_text", "").strip()
+        else:
+            llm_answer = str(response_data).strip()
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=503, detail=f"LLM server is unavailable: {e}")
 
