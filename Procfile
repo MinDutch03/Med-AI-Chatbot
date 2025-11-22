@@ -1,1 +1,2 @@
 web: uvicorn scripts.backend_rag:app --host 0.0.0.0 --port $PORT
+indexer: python scripts/index_to_qdrant.py
