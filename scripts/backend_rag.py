@@ -89,10 +89,7 @@ class ChatResponse(BaseModel):
     results: List[DocResult]
     chat_id: str  # Add chat_id to response
 
-PROMPT_TEMPLATE = """
-You are a helpful, respectful and honest medical assistant. Answer the user's question based ONLY on the provided context.
-If the context does not contain enough information to answer the question, state that you cannot answer based on the provided information.
-Do not use any prior knowledge.
+PROMPT_TEMPLATE = """You are a helpful, respectful and honest medical assistant. Use the provided context to answer the user's question.
 
 Context:
 ---
@@ -101,8 +98,12 @@ Context:
 
 Question: {question}
 
-Answer:
-"""
+Instructions:
+- If the context contains relevant information, provide a clear and helpful answer based on that information.
+- If the context does not contain enough information, briefly state what information is missing.
+- Be concise but comprehensive.
+
+Answer:"""
 
 def mmr_rerank(query_vec, candidates, top_k, lambda_param=MMR_LAMBDA):
     """
