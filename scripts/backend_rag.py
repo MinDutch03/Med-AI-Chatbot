@@ -89,7 +89,7 @@ class ChatResponse(BaseModel):
     results: List[DocResult]
     chat_id: str  # Add chat_id to response
 
-PROMPT_TEMPLATE = """You are a helpful, respectful and honest medical assistant. Use the provided context to answer the user's question.
+PROMPT_TEMPLATE = """You are a helpful, respectful and honest medical assistant. Use the provided context to answer the user's question. You can also refer to previous conversation history above.
 
 Context:
 ---
@@ -102,6 +102,7 @@ Instructions:
 - If the context contains relevant information, provide a clear and helpful answer based on that information.
 - If the context does not contain enough information, briefly state what information is missing.
 - Be concise but comprehensive.
+- Please provide a helpful answer based on the context and conversation history.
 
 Answer:"""
 
@@ -245,11 +246,12 @@ def chat(request: ChatRequest):
         messages = [
             {
                 "role": "system",
-                "content": "You are a helpful, respectful and honest medical assistant. Answer the user's question based ONLY on the provided context and previous conversation if relevant."
+                "content": "You are a helpful, respectful and honest medical assistant. You have access to both retrieved context from a knowledge base and conversation history. Use the conversation history to understand what the user previously asked, and use the retrieved context to provide accurate medical information. You can reference previous questions and answers in the conversation."
             }
         ]
         
         # Add conversation history (last 10 messages to avoid token limits)
+        # This includes previous user questions and assistant answers
         for msg in conversation_history[chat_id][-10:]:
             messages.append({
                 "role": msg["role"],
@@ -270,7 +272,7 @@ def chat(request: ChatRequest):
                 "messages": messages,
                 "stream": False,
                 "temperature": 0.1,
-                "max_tokens": 256
+                "max_tokens": 512  # Increased to allow longer responses with conversation context
             },
             timeout=60
         )
