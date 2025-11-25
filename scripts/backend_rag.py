@@ -320,7 +320,44 @@ def clear_chat(chat_id: str):
         del conversation_history[chat_id]
     return {"status": "cleared", "chat_id": chat_id}
 
-
+# Add endpoint to get all queries and answers for a chat
+@app.get("/chat/{chat_id}")
+def get_chat_history(chat_id: str):
+    """Get all queries and llm_answers for a specific chat_id"""
+    if chat_id not in conversation_history:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    
+    # Extract queries and answers from conversation history
+    queries_and_answers = []
+    history = conversation_history[chat_id]
+    
+    # Pair up user queries with assistant answers
+    i = 0
+    while i < len(history):
+        if history[i]["role"] == "user":
+            query = history[i]["content"]
+            # Look for the corresponding assistant answer
+            if i + 1 < len(history) and history[i + 1]["role"] == "assistant":
+                llm_answer = history[i + 1]["content"]
+                queries_and_answers.append({
+                    "query": query,
+                    "llm_answer": llm_answer
+                })
+                i += 2
+            else:
+                # Query without answer yet
+                queries_and_answers.append({
+                    "query": query,
+                    "llm_answer": None
+                })
+                i += 1
+        else:
+            i += 1
+    
+    return {
+        "chat_id": chat_id,
+        "queries_and_answers": queries_and_answers
+    }
 
 @app.get("/")
 def root():

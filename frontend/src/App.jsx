@@ -162,6 +162,21 @@ function App() {
         setChatId(data.chat_id)
       }
       
+      // After POST completes, make GET request to fetch all queries and answers
+      try {
+        const getResponse = await fetch(`${API_URL}/chat/${currentChatId}`, {
+          method: 'GET',
+        })
+        
+        if (getResponse.ok) {
+          const chatHistory = await getResponse.json()
+          console.log('All queries and answers for chat:', chatHistory)
+
+        }
+      } catch (getError) {
+        console.error("Failed to fetch chat history:", getError)
+      }
+      
       // Update chat in list
       setChats(prev => {
         const existingChatIndex = prev.findIndex(c => c.id === currentChatId)
