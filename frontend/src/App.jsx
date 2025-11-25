@@ -36,14 +36,6 @@ function App() {
   useEffect(() => {
     const storedChats = getChatsFromStorage()
     setChats(storedChats)
-    // Restore the most recently updated chat if available
-    if (storedChats.length > 0) {
-      const mostRecent = storedChats.sort((a, b) => 
-        new Date(b.updatedAt) - new Date(a.updatedAt)
-      )[0]
-      setChatId(mostRecent.id)
-      setMessages(mostRecent.messages || [])
-    }
   }, [])
 
   // Save chats to localStorage whenever chats change
@@ -136,14 +128,6 @@ function App() {
     setIsLoading(true)
     setSourceDocs([])
 
-    // Ensure we have a chatId before sending
-    let currentChatId = chatId
-    if (!currentChatId) {
-      // Generate a client-side chat_id if we don't have one
-      currentChatId = crypto.randomUUID()
-      setChatId(currentChatId)
-    }
-
     // Optimistically update UI
     setMessages(prev => [...prev, userMessage])
 
@@ -153,7 +137,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           query: currentInput,
-          chat_id: currentChatId  // Use the ensured chatId
+          chat_id: chatId 
         }),
       })
 
@@ -172,16 +156,16 @@ function App() {
       
       setSourceDocs(data.results)
       
-      // Update chat_id if returned from server (should match, but ensure consistency)
-      const finalChatId = data.chat_id || currentChatId
-      if (data.chat_id && data.chat_id !== currentChatId) {
+      // Update chat_id if returned from server
+      const currentChatId = data.chat_id || chatId
+      if (data.chat_id) {
         setChatId(data.chat_id)
       }
       
       // Update chat in list
       setChats(prev => {
-        const existingChatIndex = prev.findIndex(c => c.id === finalChatId)
-        const currentChat = prev.find(c => c.id === finalChatId)
+        const existingChatIndex = prev.findIndex(c => c.id === currentChatId)
+        const currentChat = prev.find(c => c.id === currentChatId)
         const isFirstMessage = !currentChat || currentChat.messages.length === 0
         const chatTitle = isFirstMessage 
           ? (currentInput.substring(0, 30) + (currentInput.length > 30 ? '...' : ''))
@@ -205,7 +189,7 @@ function App() {
         } else {
           // Create new chat entry
           const newChat = {
-            id: finalChatId,
+            id: currentChatId,
             title: chatTitle,
             messages: updatedMessages,
             createdAt: new Date().toISOString(),
