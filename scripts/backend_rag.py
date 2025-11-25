@@ -24,7 +24,7 @@ LLM_SERVER_URL = os.getenv("OLLAMA_URL")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 HUGGINGFACE_MODEL = os.getenv("HUGGINGFACE_MODEL")  # Default Mistral model
-HF_URL = f"https://huggingface.co/{HUGGINGFACE_MODEL}"
+HF_URL = f"https://router.huggingface.co/v1/chat/completions"
 
 
 # MMR Configuration
@@ -227,32 +227,30 @@ def chat(request: ChatRequest):
 
     # 7. Send prompt to Hugging Face Inference API
     try:
-        # Format prompt for Mistral Instruct model (chat format)
-        formatted_prompt = f"<s>[INST] {prompt} [/INST]"
-        
         llm_response = requests.post(
             HF_URL,
             headers={"Authorization": f"Bearer {HUGGINGFACE_API_KEY}", "Content-Type": "application/json"},
             json={
-                "inputs": formatted_prompt,
-                "parameters": {
-                    "temperature": 0.1,
-                    "max_new_tokens": 256,
-                    "return_full_text": False
-                }
+                "model": HUGGINGFACE_MODEL,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a helpful, respectful and honest medical assistant. Answer the user's question based ONLY on the provided context."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "stream": False,
+                "temperature": 0.1,
+                "max_tokens": 256
             },
-            timeout=60  # Increased timeout for model loading on first request
+            timeout=60
         )
         llm_response.raise_for_status()
         response_data = llm_response.json()
-        
-        # Handle different response formats
-        if isinstance(response_data, list) and len(response_data) > 0:
-            llm_answer = response_data[0].get("generated_text", "").strip()
-        elif isinstance(response_data, dict):
-            llm_answer = response_data.get("generated_text", str(response_data)).strip()
-        else:
-            llm_answer = str(response_data).strip()
+        llm_answer = response_data["choices"][0]["message"]["content"].strip()
             
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=503, detail=f"LLM server is unavailable: {e}")
