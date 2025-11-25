@@ -30,7 +30,6 @@ function App() {
   const [sourceDocs, setSourceDocs] = useState([])
   const [chatId, setChatId] = useState(null)
   const [chats, setChats] = useState([])
-  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   // Load chats from localStorage on mount
   useEffect(() => {
@@ -92,11 +91,6 @@ function App() {
       setChatId(targetChatId)
       setMessages(chat.messages || [])
       setSourceDocs([])
-      
-      // Close sidebar on mobile after selection
-      if (window.innerWidth <= 768) {
-        setSidebarOpen(false)
-      }
       
       // Update updatedAt
       setChats(prev => prev.map(c => 
@@ -229,7 +223,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <aside className={`chat-sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside className="chat-sidebar">
         <div className="sidebar-header">
           <button 
             className="new-chat-button sidebar-new-chat" 
@@ -238,13 +232,6 @@ function App() {
             title="Start a new chat"
           >
             + New Chat
-          </button>
-          <button 
-            className="sidebar-toggle"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-          >
-            {sidebarOpen ? '←' : '→'}
           </button>
         </div>
         <div className="chat-list">
@@ -285,13 +272,6 @@ function App() {
               <h1>Private Medical Chatbot</h1>
               <p>Powered by Mistral-7B & RAG</p>
             </div>
-            <button 
-              className="sidebar-toggle-mobile"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-            >
-              ☰
-            </button>
           </div>
         </header>
         <div className="chat-container">
