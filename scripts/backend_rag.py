@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 import os
 import requests
 import numpy as np
+import uuid
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from dotenv import load_dotenv
 
@@ -68,8 +69,12 @@ else:
     client = QdrantClient(host="localhost", port=QDRANT_PORT)
 print("Startup complete.")
 
+# In-memory conversation storage (in production, use Redis or a database)
+conversation_history: Dict[str, List[Dict[str, str]]] = {}
+
 class ChatRequest(BaseModel):
     query: str
+    chat_id: Optional[str] = None  # Add chat_id to request
     top_k: Optional[int] = TOP_K
 
 class DocResult(BaseModel):
@@ -82,6 +87,7 @@ class ChatResponse(BaseModel):
     query: str
     llm_answer: str
     results: List[DocResult]
+    chat_id: str  # Add chat_id to response
 
 PROMPT_TEMPLATE = """
 You are a helpful, respectful and honest medical assistant. Answer the user's question based ONLY on the provided context.
@@ -176,6 +182,13 @@ def mmr_rerank(query_vec, candidates, top_k, lambda_param=MMR_LAMBDA):
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
+    # Generate chat_id if not provided
+    chat_id = request.chat_id or str(uuid.uuid4())
+    
+    # Get or initialize conversation history for this chat
+    if chat_id not in conversation_history:
+        conversation_history[chat_id] = []
+    
     # 1. Embed the query
     query_vec = model.encode(request.query, convert_to_numpy=True)
     
@@ -225,23 +238,35 @@ def chat(request: ChatRequest):
     # 6. Create the prompt
     prompt = PROMPT_TEMPLATE.format(context=context, question=request.query)
 
-    # 7. Send prompt to Hugging Face Inference API
+    # 7. Send prompt to Hugging Face Chat Completions API
     try:
+        # Build messages array with conversation history
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful, respectful and honest medical assistant. Answer the user's question based ONLY on the provided context and previous conversation if relevant."
+            }
+        ]
+        
+        # Add conversation history (last 10 messages to avoid token limits)
+        for msg in conversation_history[chat_id][-10:]:
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+        
+        # Add current query with context
+        messages.append({
+            "role": "user",
+            "content": prompt
+        })
+        
         llm_response = requests.post(
             HF_URL,
             headers={"Authorization": f"Bearer {HUGGINGFACE_API_KEY}", "Content-Type": "application/json"},
             json={
                 "model": HUGGINGFACE_MODEL,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a helpful, respectful and honest medical assistant. Answer the user's question based ONLY on the provided context."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
+                "messages": messages,
                 "stream": False,
                 "temperature": 0.1,
                 "max_tokens": 256
@@ -251,6 +276,16 @@ def chat(request: ChatRequest):
         llm_response.raise_for_status()
         response_data = llm_response.json()
         llm_answer = response_data["choices"][0]["message"]["content"].strip()
+        
+        # Update conversation history
+        conversation_history[chat_id].append({
+            "role": "user",
+            "content": request.query
+        })
+        conversation_history[chat_id].append({
+            "role": "assistant",
+            "content": llm_answer
+        })
             
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=503, detail=f"LLM server is unavailable: {e}")
@@ -265,42 +300,25 @@ def chat(request: ChatRequest):
         )
         for hit in search_result
     ]
-    return ChatResponse(query=request.query, llm_answer=llm_answer, results=results)
+    return ChatResponse(query=request.query, llm_answer=llm_answer, results=results, chat_id=chat_id)
 
-@app.get("/test-ollama")
-def test_ollama():
-    """Test Ollama connection"""
-    try:
-        test_response = requests.post(
-            LLM_SERVER_URL,
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": "Say hello in one word",
-                "stream": False
-            },
-            timeout=30
-        )
-        test_response.raise_for_status()
-        return {
-            "status": "success",
-            "ollama_response": test_response.json(),
-            "model": OLLAMA_MODEL,
-            "url": LLM_SERVER_URL
-        }
-    except Exception as e:
-        import traceback
-        error_info = {
-            "status": "error",
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "model": OLLAMA_MODEL,
-            "url": LLM_SERVER_URL
-        }
-        if hasattr(e, 'response') and e.response is not None:
-            error_info["response_status"] = e.response.status_code
-            error_info["response_text"] = e.response.text
-        error_info["traceback"] = traceback.format_exc()
-        return error_info
+# Add endpoint to create new chat
+@app.post("/chat/new")
+def new_chat():
+    """Create a new chat session"""
+    chat_id = str(uuid.uuid4())
+    conversation_history[chat_id] = []
+    return {"chat_id": chat_id}
+
+# Add endpoint to clear chat history
+@app.delete("/chat/{chat_id}")
+def clear_chat(chat_id: str):
+    """Clear conversation history for a chat"""
+    if chat_id in conversation_history:
+        del conversation_history[chat_id]
+    return {"status": "cleared", "chat_id": chat_id}
+
+
 
 @app.get("/")
 def root():

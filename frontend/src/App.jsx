@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -8,6 +8,32 @@ function App() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [sourceDocs, setSourceDocs] = useState([])
+  const [chatId, setChatId] = useState(null)
+
+  const createNewChat = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/chat/new`, {
+        method: 'POST',
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setChatId(data.chat_id)
+        setMessages([])
+        setSourceDocs([])
+      }
+    } catch (error) {
+      console.error("Failed to create new chat:", error)
+      // Fallback: generate client-side chat_id
+      setChatId(crypto.randomUUID())
+      setMessages([])
+      setSourceDocs([])
+    }
+  }, [])
+
+  // Initialize chat on mount
+  useEffect(() => {
+    createNewChat()
+  }, [createNewChat])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -15,15 +41,19 @@ function App() {
 
     const userMessage = { text: input, sender: 'user' }
     setMessages(prev => [...prev, userMessage])
+    const currentInput = input
     setInput('')
     setIsLoading(true)
     setSourceDocs([])
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: input }),
+        body: JSON.stringify({ 
+          query: currentInput,
+          chat_id: chatId 
+        }),
       })
 
       if (!response.ok) {
@@ -34,6 +64,11 @@ function App() {
       const botMessage = { text: data.llm_answer, sender: 'bot' }
       setMessages(prev => [...prev, botMessage])
       setSourceDocs(data.results)
+      
+      // Update chat_id if returned from server
+      if (data.chat_id) {
+        setChatId(data.chat_id)
+      }
     } catch (error) {
       console.error("Failed to fetch:", error)
       const errorMessage = { text: "Sorry, I couldn't connect to the server. Please try again.", sender: 'bot', isError: true }
@@ -46,11 +81,28 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>Private Medical Chatbot</h1>
-        <p>Powered by Mistral-7B & RAG</p>
+        <div className="header-content">
+          <div>
+            <h1>Private Medical Chatbot</h1>
+            <p>Powered by Mistral-7B & RAG</p>
+          </div>
+          <button 
+            className="new-chat-button" 
+            onClick={createNewChat}
+            disabled={isLoading}
+            title="Start a new chat"
+          >
+            + New Chat
+          </button>
+        </div>
       </header>
       <div className="chat-container">
         <div className="message-list">
+          {messages.length === 0 && (
+            <div className="welcome-message">
+              <p>Hello! How can I assist you today? Start a conversation by asking a medical question.</p>
+            </div>
+          )}
           {messages.map((msg, index) => (
             <div key={index} className={`message ${msg.sender} ${msg.isError ? 'error' : ''}`}>
               <p>{msg.text}</p>

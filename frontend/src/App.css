@@ -50,6 +50,13 @@ body {
   border-bottom: 1px solid var(--tertiary-bg);
 }
 
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: 1.5rem;
@@ -58,6 +65,35 @@ body {
 .app-header p {
   margin: 0;
   color: #aaa;
+}
+
+.new-chat-button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--accent-color);
+  background-color: transparent;
+  color: var(--accent-color);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.new-chat-button:hover:not(:disabled) {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.new-chat-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.welcome-message {
+  padding: 2rem;
+  text-align: center;
+  color: #aaa;
+  font-style: italic;
 }
 
 .chat-container {
