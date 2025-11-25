@@ -102,7 +102,6 @@ Instructions:
 - If the context contains relevant information, provide a clear and helpful answer based on that information.
 - If the context does not contain enough information, briefly state what information is missing.
 - Be concise but comprehensive.
-- Please provide a helpful answer based on the context and conversation history.
 
 Answer:"""
 
