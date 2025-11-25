@@ -24,7 +24,7 @@ LLM_SERVER_URL = os.getenv("OLLAMA_URL")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 HUGGINGFACE_MODEL = os.getenv("HUGGINGFACE_MODEL")  # Default Mistral model
-HF_URL = f"https://huggingface.co/mistralai/{HUGGINGFACE_MODEL}"
+HF_URL = f"https://huggingface.co/{HUGGINGFACE_MODEL}"
 
 
 # MMR Configuration
