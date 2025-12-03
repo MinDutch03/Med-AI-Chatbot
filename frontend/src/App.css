@@ -395,3 +395,132 @@ body {
 .source-docs details {
     cursor: pointer;
 }
+
+/* Inline message sources */
+.message-sources {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sources-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #a0a0a0;
+  transition: color 0.2s;
+  list-style: none;
+}
+
+.sources-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.sources-toggle:hover {
+  color: var(--accent-color);
+}
+
+.sources-icon {
+  font-size: 1rem;
+}
+
+.sources-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.source-item {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem;
+  border-left: 3px solid var(--accent-color);
+}
+
+.source-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.source-badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.source-badge.pubmed {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.source-badge.medquad {
+  background-color: #1565c0;
+  color: white;
+}
+
+.source-title {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--primary-text);
+  flex: 1;
+}
+
+.source-score {
+  font-size: 0.75rem;
+  color: #888;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.source-link {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: var(--accent-color);
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+  transition: color 0.2s;
+}
+
+.source-link:hover {
+  color: #8b92ff;
+  text-decoration: underline;
+}
+
+.source-content-details {
+  margin-top: 0.5rem;
+}
+
+.source-content-details summary {
+  font-size: 0.8rem;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.source-content-details summary:hover {
+  color: var(--primary-text);
+}
+
+.source-excerpt {
+  font-size: 0.8rem;
+  color: #b0b0b0;
+  line-height: 1.5;
+  margin: 0.5rem 0 0 0;
+  padding: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+}

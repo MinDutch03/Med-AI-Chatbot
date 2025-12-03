@@ -140,7 +140,8 @@ function App() {
       }
 
       const data = await response.json()
-      const botMessage = { text: data.llm_answer, sender: 'bot' }
+      // Attach sources to the bot message
+      const botMessage = { text: data.llm_answer, sender: 'bot', sources: data.results }
       
       // Update messages with both user and bot messages
       setMessages(prev => {
@@ -284,6 +285,67 @@ function App() {
           {messages.map((msg, index) => (
             <div key={index} className={`message ${msg.sender} ${msg.isError ? 'error' : ''}`}>
               <p>{msg.text}</p>
+              {msg.sender === 'bot' && msg.sources && msg.sources.length > 0 && (
+                <div className="message-sources">
+                  <details>
+                    <summary className="sources-toggle">
+                      <span className="sources-icon">📚</span>
+                      View {msg.sources.length} source{msg.sources.length > 1 ? 's' : ''}
+                    </summary>
+                    <ul className="sources-list">
+                      {msg.sources.map((source, srcIdx) => (
+                        <li key={srcIdx} className="source-item">
+                          <div className="source-header">
+                            {source.metadata.type === 'pubmed' ? (
+                              <>
+                                <span className="source-badge pubmed">PubMed</span>
+                                <span className="source-title">
+                                  {source.metadata.journal || 'Medical Journal'}
+                                  {source.metadata.year && ` (${source.metadata.year})`}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="source-badge medquad">MedQuAD</span>
+                                <span className="source-title">
+                                  {source.metadata.source || source.metadata.focus || 'Medical FAQ'}
+                                </span>
+                              </>
+                            )}
+                            <span className="source-score">
+                              {(source.score * 100).toFixed(1)}% match
+                            </span>
+                          </div>
+                          {source.metadata.url && (
+                            <a 
+                              href={source.metadata.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="source-link"
+                            >
+                              View original source ↗
+                            </a>
+                          )}
+                          {source.metadata.pmid && (
+                            <a 
+                              href={`https://pubmed.ncbi.nlm.nih.gov/${source.metadata.pmid}/`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="source-link"
+                            >
+                              View on PubMed ↗
+                            </a>
+                          )}
+                          <details className="source-content-details">
+                            <summary>View excerpt</summary>
+                            <p className="source-excerpt">{source.text}</p>
+                          </details>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                </div>
+              )}
             </div>
           ))}
           {isLoading && (
@@ -305,23 +367,6 @@ function App() {
           <button type="submit" disabled={isLoading}>Send</button>
         </form>
       </div>
-      {sourceDocs.length > 0 && (
-        <footer className="source-docs">
-          <h2>Source Documents</h2>
-          <ul>
-            {sourceDocs.map(doc => (
-              <li key={doc.id}>
-                <p><strong>Source:</strong> {doc.metadata.source || 'N/A'}</p>
-                <p><strong>Relevance:</strong> {doc.score.toFixed(4)}</p>
-                <details>
-                  <summary>View content</summary>
-                  <p>{doc.metadata.text}</p>
-                </details>
-              </li>
-            ))}
-          </ul>
-        </footer>
-      )}
       </div>
     </div>
   )

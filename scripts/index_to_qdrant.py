@@ -42,7 +42,8 @@ medquad_docs = [
             "source": item.get("source", ""),
             "url": item.get("url", ""),
             "focus": item.get("focus", ""),
-            "file": item.get("file", "")
+            "file": item.get("file", ""),
+            "text": f"Q: {item['question']}\nA: {item['answer']}"  # Include text in payload for source citations
         }
     }
     for i, item in enumerate(medquad_data)
@@ -57,7 +58,8 @@ pubmed_docs = [
             "pmid": item.get("pmid", ""),
             "journal": item.get("journal", ""),
             "year": item.get("year", ""),
-            "authors": item.get("authors", [])
+            "authors": item.get("authors", []),
+            "text": f"{item.get('title', '')}\n{item.get('abstract', '')}"  # Include text in payload for source citations
         }
     }
     for i, item in enumerate(pubmed_data, start=len(medquad_docs))
