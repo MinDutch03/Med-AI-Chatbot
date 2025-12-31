@@ -245,7 +245,7 @@ def chat(request: ChatRequest):
         messages = [
             {
                 "role": "system",
-                "content": "You are a helpful, respectful and honest medical assistant. You have access to both retrieved context from a knowledge base and conversation history. Use the conversation history to understand what the user previously asked, and use the retrieved context to provide accurate medical information. You can reference previous questions and answers in the conversation."
+                "content": "You are a helpful, respectful and honest medical assistant. You have access to both retrieved context from a knowledge base and conversation history. Use the conversation history to understand what the user previously asked, and use the retrieved context to provide accurate medical information, but DO NOT mention, summarize, or display the conversation history in your response. You can reference previous questions and answers in the conversation."
             }
         ]
         
