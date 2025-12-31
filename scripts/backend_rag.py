@@ -103,7 +103,7 @@ Instructions:
 - If the context does not contain enough information, briefly state what information is missing.
 - Be concise but comprehensive.
 
-Answer:"""
+Answer (cite sources when possible):"""
 
 def mmr_rerank(query_vec, candidates, top_k, lambda_param=MMR_LAMBDA):
     """
